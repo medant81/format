@@ -2,21 +2,17 @@ package format
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"os"
+	"sort"
 )
 
-type patient struct {
-	Name  string `xml:"name"`
-	Age   int    `xml:"age"`
-	Email string `xml:"email"`
+type animal struct {
+	Name  string `json:"name"`
+	Age   int    `json:"age"`
+	Email string `json:"email"`
 }
 
-type patients struct {
-	List []patient `xml:"Patient"`
-}
-
-func fileDecode(fileIn string) (*patients, error) {
+func fileDecode(fileIn string) ([]animal, error) {
 
 	f, err := os.Open(fileIn)
 	if err != nil {
@@ -24,38 +20,36 @@ func fileDecode(fileIn string) (*patients, error) {
 	}
 	defer f.Close()
 
-	res := patients{}
-
+	res := make([]animal, 0, 2)
 	dec := json.NewDecoder(f)
 	for dec.More() {
-		var a patient
+		var a animal
 		err = dec.Decode(&a)
 		if err != nil {
 			return nil, err
 		}
-		res.List = append(res.List, a)
+		res = append(res, a)
 	}
 
-	return &res, nil
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Age < res[j].Age
+	})
+
+	return res, nil
 }
 
-func fileEncode(fileOut string, a *patients) error {
+func fileEncode(fileOut string, a []animal) error {
 
 	f, err := os.Create(fileOut)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
-	_, err = f.WriteString(xml.Header)
+	err = json.NewEncoder(f).Encode(a)
 	if err != nil {
 		return err
 	}
-
-	encoder := xml.NewEncoder(f)
-	encoder.Indent("", " ")
-
-	err = encoder.Encode(a)
+	err = f.Close()
 	if err != nil {
 		return err
 	}
