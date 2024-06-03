@@ -41,6 +41,7 @@ func fileDecode(fileIn string) ([]animal, error) {
 func fileEncode(fileOut string, a []animal) error {
 
 	f, err := os.Create(fileOut)
+
 	if err != nil {
 		return err
 	}
