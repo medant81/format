@@ -42,6 +42,7 @@ func fileDecode(fileIn string) (*patients, error) {
 func fileEncode(fileOut string, a *patients) error {
 
 	f, err := os.Create(fileOut)
+
 	if err != nil {
 		return err
 	}
